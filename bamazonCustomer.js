@@ -15,23 +15,23 @@ var connection = mysql.createConnection({
 connection.connect(function(err) {
     if (err) throw err;
     console.log("Connected as ID " + connection.threadId + "\n");
-    begin();
+    begin()
 });
 
 function begin() {
 
 
-    var query = "SELECT item_id, product_name, price FROM products";
+    var query = "SELECT _id, product_name, price FROM products";
     connection.query(query, function (err, res) {
         if (err) throw err;
 
         for (var i = 0; i < res.length; i++) {
-            console.log("ID: " + res[i].item_id + "  Product Name: " + res[i].product_name + "  Price: " + res[i].price);
+            console.log("ID: " + res[i]._id + "  Product Name: " + res[i].product_name + "  Price: " + res[i].price);
         }
 
         console.log(" ");
         decision(res.length);
-
+    });
 
         function decision(idCount) {
 
@@ -63,51 +63,24 @@ function begin() {
             ]).then(function (answer) {
                 var item = answer.item;
                 var amount = answer.amount;
-                var query = "SELECT item_id, product_name, stock_quantity, price FROM products WHERE ?";
-                connection.query(query, { item_id: item }, function (err, res) {
+                var query = "SELECT _id, product_name, stock_quantity, price FROM products WHERE ?";
+                connection.query(query, { _id: item }, function (err, res) {
                     if (err) throw err;
                         if ( amount > res[0].stock_quantity) {
-
+                            console.log("Insufficient Amount!");
                         }
                         else {
                             var newAmount = res[0].stock_quantity - amount;
                             var productName = res[0].product_name;
                             var price = res[0].price;
-                            var total = res[0].price * amount;
+                            var total = price * amount;
                             var query = "UPDATE products SET ? WHERE ?";
-                            connection.query(query, [{stock_quantity: newAmount}, {item_id: item}], function(err, res) {
-                                console.log("You've just bought " + amount + " of " + productName + "\nThanks for shopping with us!");
-                                connection.end();
+                            connection.query(query, [{ stock_quantity: newAmount }, { _id: item}], function(err, res) {
+                                console.log("You've just bought " + amount + " of " + productName + "\nTotal Cost is: $" + total + "\nThanks for shopping with us!");
                             });
+                            connection.end();
                         }
+                    });
                 });
-            }
-        )};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // Log all results of the SELECT statement
-        console.log(res);
-        connection.end();
-    });
-
-
+        }
 }
-
